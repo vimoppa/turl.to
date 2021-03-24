@@ -1,0 +1,36 @@
+### Go ###
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+### Go Patch ###
+/vendor/
+/Godeps/
+
+##DS STORE##
+.DS_Store
+.DS_Store?
+
+## GITCONFIG ##
+.gitconfig
+
+## ENVIRONMENT FILE ##
+.env
+
+## CONFIG FILE ##
+/store/config.yml
+
+# Ignore the binary
+turl.to
+
+# Ignore tmp dir used by https://github.com/cosmtrek/air/
+tmp
