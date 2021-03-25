@@ -2,8 +2,6 @@ package storage
 
 import (
 	"bufio"
-	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -14,10 +12,10 @@ import (
 
 // Accessor is the storage accessor contract.
 type Accessor interface {
-	WriteOnce(shortURL string, longURL string) error
-	ReadOne(shortURL string) (string, error)
+	WriteOnce(hash string, longURL string) error
+	ReadOne(hash string) (string, error)
 	ReadAll() ([]string, error)
-	LookUp(longURL string) bool
+	LookUp(hash string) bool
 }
 
 // Store ...
@@ -27,13 +25,13 @@ type Store struct {
 }
 
 // WriteOnce writes a new record to the store.
-func (s *Store) WriteOnce(shortURL string, longURL string) error {
-	input := shortURL + " " + longURL
+func (s *Store) WriteOnce(hash string, longURL string) error {
+	input := hash + " " + longURL + "\n"
 
 	errChan := make(chan error, 1)
 	go func() {
 		s.mu.Lock()
-		file, err := os.Open(s.file)
+		file, err := os.OpenFile(s.file, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			errChan <- err
 			return
@@ -41,7 +39,8 @@ func (s *Store) WriteOnce(shortURL string, longURL string) error {
 		defer file.Close()
 		defer s.mu.Unlock()
 
-		if err := ioutil.WriteFile(s.file, []byte(input), fs.ModeAppend); err != nil {
+		_, err = file.Write([]byte(input))
+		if err != nil {
 			errChan <- err
 			return
 		}
@@ -53,7 +52,7 @@ func (s *Store) WriteOnce(shortURL string, longURL string) error {
 }
 
 // ReadOne a single record from the store.
-func (s *Store) ReadOne(URL string) (string, error) {
+func (s *Store) ReadOne(hash string) (string, error) {
 	strChan := make(chan string, 1)
 	errChan := make(chan error, 1)
 
@@ -67,20 +66,16 @@ func (s *Store) ReadOne(URL string) (string, error) {
 		defer file.Close()
 		defer s.mu.Unlock()
 
-		var (
-			longURL  string
-			shortURL string
-		)
-
 		scanner := bufio.NewScanner(file)
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			text := scanner.Text()
 			urls := strings.Split(text, " ")
-			shortURL, longURL = urls[0], urls[1]
+			urlHash, longURL := urls[0], urls[1]
 
-			if shortURL == URL {
-				break
+			if urlHash == hash {
+				strChan <- longURL
+				return
 			}
 		}
 
@@ -89,7 +84,6 @@ func (s *Store) ReadOne(URL string) (string, error) {
 			return
 		}
 
-		strChan <- longURL
 	}()
 
 	select {
@@ -140,8 +134,8 @@ func (s *Store) ReadAll() ([]string, error) {
 	}
 }
 
-// LookUp searches for a record by the longURL is any.
-func (s *Store) LookUp(longURL string) bool {
+// LookUp searches for a record by the hash is any.
+func (s *Store) LookUp(hash string) bool {
 	boolChan := make(chan bool, 1)
 
 	go func() {
@@ -161,8 +155,9 @@ func (s *Store) LookUp(longURL string) bool {
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			text := scanner.Text()
+			urls := strings.Split(text, " ")
 
-			if strings.Contains(text, longURL) {
+			if hash == urls[0] {
 				exists = true
 				break
 			}
