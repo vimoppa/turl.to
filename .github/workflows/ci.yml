@@ -1,4 +1,4 @@
-name: Go
+name: CI Build and Test
 
 on:
   push:
@@ -22,3 +22,11 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag turl.to:$(date +%s)
