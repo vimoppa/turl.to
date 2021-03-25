@@ -27,7 +27,8 @@
 .env
 
 ## CONFIG FILE ##
-/store/*
+/store/config.yml
+/store/db.txt
 
 # Ignore the binary
 turl.to
