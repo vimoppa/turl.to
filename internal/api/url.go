@@ -16,7 +16,7 @@ type createURLPayload struct {
 // AnyURLs retreives all the URL resources avaliable.
 func AnyURLs(s storage.Accessor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := s.ReadAll()
+		result, err := app.GetAllRecords(s)
 		if err != nil {
 			RespondWithError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -55,7 +55,10 @@ func CreateURL(s storage.Accessor) http.HandlerFunc {
 			Code:    http.StatusOK,
 			Status:  "Success",
 			Message: "Successfully Created URL Resource",
-			Data:    hash,
+			Data: app.RecordsItem{
+				Hash:    hash,
+				LongURL: payload.URL,
+			},
 		}
 
 		RespondWithJSON(w, http.StatusOK, response)
