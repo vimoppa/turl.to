@@ -29,17 +29,17 @@ func TestStorage(t *testing.T) {
 	}
 
 	longURL := "https://www.google.com"
-	shortURL := "a3rnvsd"
+	hash := "a3rnvsd"
 
-	if err := store.WriteOnce(shortURL, longURL); err != nil {
+	if err := store.WriteOnce(hash, longURL); err != nil {
 		t.Errorf("failed to write to store: %v", err)
 	}
 
-	if exists := store.LookUp(longURL); !exists {
+	if exists := store.LookUp(hash); !exists {
 		t.Error("expected to find longURL in store")
 	}
 
-	result, err := store.ReadOne(shortURL)
+	result, err := store.ReadOne(hash)
 	if err != nil {
 		t.Error("expected to find longURL in store")
 	}
