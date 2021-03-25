@@ -20,6 +20,10 @@ FROM scratch
 
 WORKDIR /app
 
+ENV PORT 8080
+
+EXPOSE $PORT
+
 ENTRYPOINT ["/app/turl.to"]
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
